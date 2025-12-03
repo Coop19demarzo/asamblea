@@ -3,174 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verificador de Habilitación – Cooperativa</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f3f7f3;
-        margin: 0;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        color: #2E7D32;
-        margin-bottom: 30px;
-    }
-
-    .container {
-        max-width: 500px;
-        margin: auto;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #ccc;
-        border-radius: 5px;
-        margin-bottom: 15px;
-        font-size: 1em;
-    }
-
-    button {
-        width: 100%;
-        background: #2E7D32;
-        color: white;
-        padding: 12px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 1.1em;
-    }
-
-    button:hover {
-        background: #1b5e20;
-    }
-
-    .result {
-        margin-top: 25px;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 1.1em;
-        display: none;
-    }
-
-    .ok { background: #d4edda; color: #155724; }
-    .warn { background: #fff3cd; color: #856404; }
-    .error { background: #f8d7da; color: #721c24; }
-
-    .data-box {
-        margin-top: 15px;
-        padding: 15px;
-        border-left: 4px solid #2E7D32;
-        background: #f9f9f9;
-        border-radius: 5px;
-        text-align: left;
-    }
-</style>
-
+<title>Verificar Socio - Cooperativa</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    padding: 20px;
+    text-align: center;
+}
+h1 {
+    color: #2E7D32;
+}
+input, select, button {
+    padding: 10px;
+    margin: 10px 5px;
+    font-size: 1em;
+}
+#resultado {
+    margin-top: 20px;
+    font-size: 1.2em;
+    padding: 15px;
+    border-radius: 5px;
+}
+.result-ok { background-color: #dff0d8; color: #3c763d; }
+.result-warn { background-color: #f2dede; color: #a94442; }
+</style>
 </head>
 <body>
+<h1>Verificar Estado de Socio</h1>
 
-<h1>Verificador de Habilitación de Socios</h1>
+<p>Seleccione el tipo de búsqueda e ingrese el dato correspondiente:</p>
+<select id="tipoBusqueda">
+    <option value="ci">C.I.</option>
+    <option value="socio">Número de Socio</option>
+    <option value="nombre">Nombre</option>
+</select>
+<input type="text" id="busqueda" placeholder="Ingrese dato">
+<button onclick="buscarSocio()">Buscar</button>
 
-<div class="container">
-
-    <input type="text" id="busqueda" placeholder="Ingrese CI, Nombre o Nº de socio">
-    <button onclick="buscarSocio()">Verificar</button>
-
-    <div id="resultado" class="result"></div>
-    <div id="datos" class="data-box" style="display:none;"></div>
-
-</div>
+<div id="resultado"></div>
 
 <script>
 let padron = [];
-const excelUrl = "https://raw.githubusercontent.com/Coop19demarzo/asamblea/main/padron.xlsx";  // ← REEMPLAZAR
 
-// Cargar archivo al iniciar
+// Aquí reemplaza con tu link RAW de GitHub
+const excelUrl = "https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/padron.xlsx";
+
+// Cargar Excel al iniciar
 window.onload = async function() {
     try {
         const res = await fetch(excelUrl);
         const data = await res.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-        // Convertir desde fila 3 (fila 1 = encabezado, fila 2 títulos según tu info)
-        for (let i = 2; i < rows.length; i++) {
-            const r = rows[i];
-            padron.push({
-                socio: r[1],
-                nombre: r[2],
-                habilitado: r[3],
-                ci: r[4]
-            });
-        }
-        console.log("Padrón cargado:", padron.length, "socios");
-    } catch (e) {
-        alert("Error cargando el padrón: " + e);
-        console.error(e);
+        const sheetName = workbook.SheetNames[0];
+        padron = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { range: 1 });
+        console.log("Padron cargado:", padron.length, "socios");
+    } catch (err) {
+        alert("Error al cargar Excel: " + err);
+        console.error(err);
     }
-};
+}
 
 function buscarSocio() {
     const q = document.getElementById("busqueda").value.trim().toLowerCase();
+    const tipo = document.getElementById("tipoBusqueda").value;
     const resultado = document.getElementById("resultado");
-    const datos = document.getElementById("datos");
 
-    resultado.style.display = "none";
-    datos.style.display = "none";
-
-    if (q === "") {
-        resultado.className = "result error";
+    if (!q) {
         resultado.innerHTML = "Ingrese un dato para buscar.";
-        resultado.style.display = "block";
+        resultado.className = "";
         return;
     }
 
-    const s = padron.find(x =>
-        (x.ci + "").toLowerCase().includes(q) ||
-        (x.socio + "").toLowerCase().includes(q) ||
-        (x.nombre + "").toLowerCase().includes(q)
-    );
+    let s;
+    if (tipo === "ci") {
+        s = padron.find(x => (x["C.I. Nro"] + "").toLowerCase() === q);
+    } else if (tipo === "socio") {
+        s = padron.find(x => (x["SOCIO"] + "").toLowerCase() === q);
+    } else if (tipo === "nombre") {
+        s = padron.find(x => (x["APELLIDO, NOMBRE"] + "").toLowerCase().includes(q));
+    }
 
     if (!s) {
-        resultado.className = "result error";
         resultado.innerHTML = "❌ Socio no encontrado.";
-        resultado.style.display = "block";
+        resultado.className = "result-warn";
         return;
     }
 
-    // Mostrar habilitación
-    if (s.habilitado.toLowerCase().includes("voz y voto")) {
-        resultado.className = "result ok";
-        resultado.innerHTML = "✔ Habilitado: VOZ Y VOTO";
-    } else {
-        resultado.className = "result warn";
-        resultado.innerHTML = "⚠ Habilitado solo con VOZ";
-    }
+    let estado = s["HABILITADO"].toLowerCase().includes("voz y voto") 
+                 ? "✔ Habilitado: VOZ Y VOTO" 
+                 : "⚠ Solo VOZ";
 
-    resultado.style.display = "block";
-
-    // Mostrar datos
-    datos.innerHTML = `
-        <b>Nombre:</b> ${s.nombre}<br>
-        <b>N° Socio:</b> ${s.socio}<br>
-        <b>CI:</b> ${s.ci}<br>
-        <b>Estado:</b> ${s.habilitado}
+    resultado.innerHTML = `
+        <b>Nombre:</b> ${s["APELLIDO, NOMBRE"]} <br>
+        <b>Número de Socio:</b> ${s["SOCIO"]} <br>
+        <b>C.I.:</b> ${s["C.I. Nro"]} <br>
+        <b>Estado:</b> ${estado}
     `;
-    datos.style.display = "block";
+    resultado.className = estado.includes("VOZ Y VOTO") ? "result-ok" : "result-warn";
 }
 </script>
-
 </body>
 </html>
