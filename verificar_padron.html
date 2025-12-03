@@ -98,7 +98,7 @@ function buscarSocio() {
     resultado.innerHTML = `
         <b>Nombre:</b> ${s["APELLIDO, NOMBRE"]} <br>
         <b>Número de Socio:</b> ${s["SOCIO"]} <br>
-        <b>C.I.:</b> ${s["C.I. Nro"]} <br>
+        <b>C.I.:</b> ${s["C.I.Nro"]} <br>
         <b>Estado:</b> ${estado}
     `;
     resultado.className = estado.includes("VOZ Y VOTO") ? "result-ok" : "result-warn";
@@ -106,4 +106,5 @@ function buscarSocio() {
 </script>
 </body>
 </html>
+
 
