@@ -78,7 +78,7 @@ function buscarSocio() {
 
     let s;
     if (tipo === "ci") {
-        s = padron.find(x => (x["C.I. Nro"] + "").toLowerCase() === q);
+        s = padron.find(x => (x["C.I.Nro"] + "").toLowerCase() === q);
     } else if (tipo === "socio") {
         s = padron.find(x => (x["SOCIO"] + "").toLowerCase() === q);
     } else if (tipo === "nombre") {
@@ -106,5 +106,6 @@ function buscarSocio() {
 </script>
 </body>
 </html>
+
 
 
