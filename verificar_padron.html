@@ -1,111 +1,222 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verificar Socio - Cooperativa</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    padding: 20px;
-    text-align: center;
-}
-h1 {
-    color: #2E7D32;
-}
-input, select, button {
-    padding: 10px;
-    margin: 10px 5px;
-    font-size: 1em;
-}
-#resultado {
-    margin-top: 20px;
-    font-size: 1.2em;
-    padding: 15px;
-    border-radius: 5px;
-}
-.result-ok { background-color: #dff0d8; color: #3c763d; }
-.result-warn { background-color: #f2dede; color: #a94442; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Verificación de Socios - Cooperativa</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef3e8; /* Tono de fondo más claro y amigable */
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #1B5E20; /* Verde más oscuro */
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            border-bottom: 3px solid #66BB6A;
+            padding-bottom: 10px;
+        }
+        /* Contenedor del Formulario */
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto 30px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra más profunda */
+            border-left: 5px solid #4CAF50;
+        }
+        label {
+            display: block;
+            width: 100%;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        select, input[type="text"] {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box; /* Asegura que el padding no cambie el ancho total */
+        }
+        button {
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #388E3C;
+        }
+        
+        /* Contenedor de Resultados Mejorado */
+        .result {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+
+        /* Estilos Dinámicos para el estado de Habilitación */
+        .habilitado-box {
+            padding: 10px 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            font-size: 1.1em;
+        }
+        /* VOZ Y VOTO (Verde) */
+        .habilitado-verde {
+            background-color: #4CAF50; /* Éxito */
+            border: 2px solid #388E3C;
+        }
+        /* SOLO VOZ (Amarillo/Naranja) */
+        .habilitado-amarillo {
+            background-color: #FFC107; /* Advertencia */
+            color: #333;
+            border: 2px solid #FFA000;
+        }
+        /* NO HABILITADO / OTRA COSA (Rojo) */
+        .habilitado-rojo {
+            background-color: #F44336; /* Peligro */
+            border: 2px solid #D32F2F;
+        }
+
+        /* Estilo de la Firma */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.8em;
+            color: #777;
+        }
+        .footer strong {
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-<h1>Verificar Estado de Socio</h1>
 
-<p>Seleccione el tipo de búsqueda e ingrese el dato correspondiente:</p>
-<select id="tipoBusqueda">
-    <option value="ci">C.I.</option>
-    <option value="socio">Número de Socio</option>
-    <option value="nombre">Nombre</option>
-</select>
-<input type="text" id="busqueda" placeholder="Ingrese dato">
-<button onclick="buscarSocio()">Buscar</button>
+    <h1>Verificación de Socios</h1>
 
-<div id="resultado"></div>
+    <div class="form-container">
+        <label for="tipoBusqueda">Buscar por:</label>
+        <select id="tipoBusqueda">
+            <option value="ci">C.I. Nro</option>
+            <option value="socio">Número de Socio</option>
+            <option value="nombre">Apellido, Nombre</option>
+        </select>
 
-<script>
-let padron = [];
+        <label for="valorBusqueda">Ingrese valor:</label>
+        <input type="text" id="valorBusqueda" placeholder="Ingrese C.I., socio o nombre" autocomplete="off">
 
-// Aquí reemplaza con tu link RAW de GitHub
-const excelUrl = "https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/padron.xlsx";
+        <button id="buscarBtn">Buscar</button>
+    </div>
 
-// Cargar Excel al iniciar
-window.onload = async function() {
-    try {
-        const res = await fetch(excelUrl);
-        const data = await res.arrayBuffer();
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        padron = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { range: 2 });
-        console.log("Padron cargado:", padron.length, "socios");
-    } catch (err) {
-        alert("Error al cargar Excel: " + err);
-        console.error(err);
-    }
-}
+    <div id="resultado" class="result" style="display:none;"></div>
+    
+    <div class="footer">
+        Diseñado por <a href="https://github.com/coop19demarzo" target="_blank">José Ruiz Díaz</a> - 2025
+    </div>
 
-function buscarSocio() {
-    const q = document.getElementById("busqueda").value.trim().toLowerCase();
-    const tipo = document.getElementById("tipoBusqueda").value;
-    const resultado = document.getElementById("resultado");
+    <script>
+        const excelUrl = "https://raw.githubusercontent.com/Coop19demarzo/asamblea/main/padron.xlsx"; // URL de tu padrón
 
-    if (!q) {
-        resultado.innerHTML = "Ingrese un dato para buscar.";
-        resultado.className = "";
-        return;
-    }
+        let padron = [];
 
-    let s;
-    if (tipo === "ci") {
-        s = padron.find(x => (x["C.I.Nro"] + "").toLowerCase() === q);
-    } else if (tipo === "socio") {
-        s = padron.find(x => (x["SOCIO"] + "").toLowerCase() === q);
-    } else if (tipo === "nombre") {
-        s = padron.find(x => (x["APELLIDO, NOMBRE"] + "").toLowerCase().includes(q));
-    }
+        // Función para determinar la clase CSS según el estado de Habilitado
+        function obtenerClaseHabilitado(estado) {
+            const estadoUpper = estado ? estado.toUpperCase().trim() : '';
 
-    if (!s) {
-        resultado.innerHTML = "❌ Socio no encontrado.";
-        resultado.className = "result-warn";
-        return;
-    }
+            if (estadoUpper.includes("VOTO")) {
+                return 'habilitado-verde'; // Voz y Voto
+            } else if (estadoUpper.includes("VOZ")) {
+                return 'habilitado-amarillo'; // Solo Voz
+            } else {
+                return 'habilitado-rojo'; // No Habilitado / Otro
+            }
+        }
 
-    let estado = s["HABILITADO"].toLowerCase().includes("voz y voto") 
-                 ? "✔ Habilitado: VOZ Y VOTO" 
-                 : "⚠ Solo VOZ";
+        // Cargar Excel desde GitHub
+        fetch(excelUrl)
+            .then(res => res.arrayBuffer())
+            .then(data => {
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                // range:2 -> cabecera en fila 3, datos desde fila 4
+                padron = XLSX.utils.sheet_to_json(sheet, { range: 2 });
+                console.log("Padron cargado:", padron);
+            })
+            .catch(err => {
+                console.error("Error al cargar Excel:", err);
+                alert("No se pudo cargar el padrón. Verifica la URL RAW y que estés en un servidor HTTP/HTTPS.");
+            });
 
-    resultado.innerHTML = `
-        <b>Nombre:</b> ${s["APELLIDO, NOMBRE"]} <br>
-        <b>Número de Socio:</b> ${s["SOCIO"]} <br>
-        <b>C.I.:</b> ${s["C.I.Nro"]} <br>
-        <b>Estado:</b> ${estado}
-    `;
-    resultado.className = estado.includes("VOZ Y VOTO") ? "result-ok" : "result-warn";
-}
-</script>
+        document.getElementById("buscarBtn").addEventListener("click", () => {
+            const tipo = document.getElementById("tipoBusqueda").value;
+            const valor = document.getElementById("valorBusqueda").value.trim();
+
+            if (!valor) {
+                alert("Ingrese un valor para buscar.");
+                return;
+            }
+
+            let resultado;
+
+            if (tipo === "ci") {
+                // Buscando por la columna 'C.I.Nro' (corregida)
+                resultado = padron.find(x => (x["C.I.Nro"]+"").trim() === valor);
+            } else if (tipo === "socio") {
+                // Buscando por la columna 'SOCIO'
+                resultado = padron.find(x => (x["SOCIO"]+"").trim() === valor);
+            } else if (tipo === "nombre") {
+                // Buscando por la columna 'APELLIDO, NOMBRE' (búsqueda parcial)
+                const valUpper = valor.toUpperCase();
+                resultado = padron.find(x => (x["APELLIDO, NOMBRE"]+"").toUpperCase().includes(valUpper));
+            }
+
+            const div = document.getElementById("resultado");
+
+            if (resultado) {
+                const claseHabilitado = obtenerClaseHabilitado(resultado["HABILITADO"]);
+                
+                div.style.display = "block";
+                div.innerHTML = `
+                    <p><strong>Socio:</strong> ${resultado["SOCIO"]}</p>
+                    <p><strong>Nombre:</strong> ${resultado["APELLIDO, NOMBRE"]}</p>
+                    <p><strong>C.I.:</strong> ${resultado["C.I.Nro"] || 'No Registrado'}</p>
+                    
+                    <div class="habilitado-box ${claseHabilitado}">
+                        Estado de Habilitación: ${resultado["HABILITADO"]}
+                    </div>
+                `;
+            } else {
+                div.style.display = "block";
+                // Añadir un borde de error al mensaje de no encontrado
+                div.innerHTML = `<div class="habilitado-box habilitado-rojo">Socio no encontrado en el padrón.</div>`;
+            }
+        });
+    </script>
+
 </body>
 </html>
-
-
-
