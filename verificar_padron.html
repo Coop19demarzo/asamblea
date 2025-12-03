@@ -57,7 +57,7 @@ window.onload = async function() {
         const data = await res.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
-        padron = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { range: 1 });
+        padron = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { range: 2 });
         console.log("Padron cargado:", padron.length, "socios");
     } catch (err) {
         alert("Error al cargar Excel: " + err);
@@ -106,3 +106,4 @@ function buscarSocio() {
 </script>
 </body>
 </html>
+
